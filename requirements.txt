@@ -1,0 +1,40 @@
+protobuf==6.31.1
+
+# PDF Editor
+PyPDF2==3.0.1
+
+# API Reqs
+Requests==2.32.4
+
+# Frontend part
+streamlit==1.47.0
+
+# Data Analysis
+torch==2.7.1
+
+# LangChain Core
+langchain
+langchain-core
+
+# OpenAI Integration
+langchain-openai
+openai
+
+# Anthropic Integration
+langchain-anthropic
+
+# Google Gemini (PaLM) Integration
+langchain-google-genai
+google-generativeai
+
+# Hugging Face Integration
+langchain-huggingface
+transformers
+huggingface-hub
+
+# Environment Variable Management
+python-dotenv
+
+# Machine Learning Utilities
+numpy
+scikit-learn
