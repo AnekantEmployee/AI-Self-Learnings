@@ -139,7 +139,7 @@ graph.add_edge('optimize', 'evaluate')
 workflow = graph.compile()
 
 # Example usage
-def generate_instagram_caption(topic, max_iterations=5):
+def generate_instagram_caption(topic, max_iterations=2):
     """Generate an Instagram caption for a given topic"""
     initial_state = {
         "topic": topic,

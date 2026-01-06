@@ -49,7 +49,7 @@ graph.add_edge('label_bmi', END)
 workflow = graph.compile()
 
 # Execution
-result = workflow.invoke({'weight': 50, 'height': 1.8288})
+result = workflow.invoke({'weight': 53, 'height': 1.8288})
 print(result)
 
 # Image(workflow.get_graph().draw_mermaid_png())

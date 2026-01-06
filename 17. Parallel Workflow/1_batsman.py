@@ -33,6 +33,7 @@ def calculate_boundary_percent(state: BatsmanState):
 
     return {'boundary_percent': boundary_percent}
 
+
 def summary(state: BatsmanState):
 
     summary = f"""
