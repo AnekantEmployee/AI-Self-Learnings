@@ -2,66 +2,40 @@ import streamlit as st
 from bot_backend import get_chatbot
 from langchain_core.messages import HumanMessage
 
-# Initialize chatbot once
-if "chatbot" not in st.session_state:
-    st.session_state.chatbot = get_chatbot()
+# st.session_state -> dict ->
+CONFIG = {"configurable": {"thread_id": "thread-1"}}
 
-# Streamlit UI
-st.title("🤖 AI Chatbot")
-st.write("Chat with your AI assistant!")
+if "message_history" not in st.session_state:
+    st.session_state["message_history"] = []
 
-# Initialize session state
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-if "thread_id" not in st.session_state:
-    st.session_state.thread_id = "streamlit_session"
-
-# Display chat messages
-for message in st.session_state.messages:
+# loading the conversation history
+for message in st.session_state["message_history"]:
     with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+        st.text(message["content"])
 
-# Chat input
-if prompt := st.chat_input("What would you like to know?"):
-    # Add user message to chat history
-    st.session_state.messages.append({"role": "user", "content": prompt})
+user_input = st.chat_input("Type here")
 
-    # Display user message
+chatbot = get_chatbot()
+
+if user_input:
+
+    # first add the message to message_history
+    st.session_state["message_history"].append({"role": "user", "content": user_input})
     with st.chat_message("user"):
-        st.markdown(prompt)
+        st.text(user_input)
 
-    # Get AI response
+    # first add the message to message_history
     with st.chat_message("assistant"):
-        config = {"configurable": {"thread_id": st.session_state.thread_id}}
 
-        response_container = st.empty()
-        full_response = ""
-        
-        for chunk in st.session_state.chatbot.stream(
-            {"messages": [HumanMessage(prompt)]}, config, stream_mode="messages"
-        ):
-            if hasattr(chunk, 'content') and chunk.content:
-                full_response += chunk.content
-                response_container.markdown(full_response)
-        
-        st.session_state.messages.append({"role": "assistant", "content": full_response})
-
-# Sidebar with options
-with st.sidebar:
-    st.header("Options")
-
-    if st.button("Clear Chat History"):
-        st.session_state.messages = []
-        # Create new thread ID and reinitialize chatbot
-        st.session_state.thread_id = (
-            f"streamlit_session_{st.session_state.get('session_counter', 0)}"
+        ai_message = st.write_stream(
+            message_chunk[0].content
+            for message_chunk in chatbot.stream(
+                {"messages": [HumanMessage(content=user_input)]},
+                config=CONFIG,
+                stream_mode="messages",
+            )
         )
-        st.session_state.session_counter = (
-            st.session_state.get("session_counter", 0) + 1
-        )
-        st.session_state.chatbot = get_chatbot()
-        st.rerun()
 
-    st.write(f"**Thread ID:** {st.session_state.thread_id}")
-    st.write(f"**Messages:** {len(st.session_state.messages)}")
+    st.session_state["message_history"].append(
+        {"role": "assistant", "content": ai_message}
+    )

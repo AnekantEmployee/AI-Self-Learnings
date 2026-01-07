@@ -1,5 +1,5 @@
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
+from langchain_groq import ChatGroq
+from langchain_core.messages import BaseMessage, SystemMessage
 from langgraph.graph.message import add_messages
 from langgraph.graph import StateGraph, START, END
 from typing import TypedDict, Annotated, List
@@ -13,7 +13,7 @@ class ChatState(TypedDict):
     messages: Annotated[List[BaseMessage], add_messages]
 
 
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
+llm = ChatGroq(model="llama-3.1-8b-instant")
 checkpointer = MemorySaver()
 
 
