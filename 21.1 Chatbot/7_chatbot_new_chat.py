@@ -89,11 +89,13 @@ with st.sidebar:
     if new_chat:
         id = get_unique_id()
         switch_chat(id)
+        st.rerun()
 
     st.header("My Conversations")
 
     if len(st.session_state["threads_list"]) != 0:
-        for id in st.session_state["threads_list"]:
+        for id in list(reversed(st.session_state["threads_list"])):
             id_btn = st.button(str(id), key=f"streamlit_btn_{id}")
             if id_btn:
                 switch_chat(id)
+                st.rerun()
