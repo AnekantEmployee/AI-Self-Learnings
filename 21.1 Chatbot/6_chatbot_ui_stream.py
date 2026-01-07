@@ -26,37 +26,42 @@ for message in st.session_state.messages:
 if prompt := st.chat_input("What would you like to know?"):
     # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
-    
+
     # Display user message
     with st.chat_message("user"):
         st.markdown(prompt)
-    
+
     # Get AI response
     with st.chat_message("assistant"):
-        with st.spinner("Thinking..."):
-            config = {"configurable": {"thread_id": st.session_state.thread_id}}
-            
-            try:
-                results = st.session_state.chatbot.invoke({"messages": [HumanMessage(prompt)]}, config=config)
-                response = results["messages"][-1].content
-                st.markdown(response)
-                
-                # Add assistant response to chat history
-                st.session_state.messages.append({"role": "assistant", "content": response})
-            except Exception as e:
-                st.error(f"Error: {str(e)}")
+        config = {"configurable": {"thread_id": st.session_state.thread_id}}
+
+        response_container = st.empty()
+        full_response = ""
+        
+        for chunk in st.session_state.chatbot.stream(
+            {"messages": [HumanMessage(prompt)]}, config, stream_mode="messages"
+        ):
+            if hasattr(chunk, 'content') and chunk.content:
+                full_response += chunk.content
+                response_container.markdown(full_response)
+        
+        st.session_state.messages.append({"role": "assistant", "content": full_response})
 
 # Sidebar with options
 with st.sidebar:
     st.header("Options")
-    
+
     if st.button("Clear Chat History"):
         st.session_state.messages = []
         # Create new thread ID and reinitialize chatbot
-        st.session_state.thread_id = f"streamlit_session_{st.session_state.get('session_counter', 0)}"
-        st.session_state.session_counter = st.session_state.get('session_counter', 0) + 1
+        st.session_state.thread_id = (
+            f"streamlit_session_{st.session_state.get('session_counter', 0)}"
+        )
+        st.session_state.session_counter = (
+            st.session_state.get("session_counter", 0) + 1
+        )
         st.session_state.chatbot = get_chatbot()
         st.rerun()
-    
+
     st.write(f"**Thread ID:** {st.session_state.thread_id}")
     st.write(f"**Messages:** {len(st.session_state.messages)}")
