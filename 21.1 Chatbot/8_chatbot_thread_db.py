@@ -41,8 +41,10 @@ if len(st.session_state["threads_list"]) == 0:
 # CONFIG = {"configurable": {"thread_id": st.session_state["current_thread"]}}
 CONFIG = {
     "configurable": {"thread_id": st.session_state["current_thread"]},
-    "metadata": {"thread_id": st.session_state["current_thread"]}, # To Segregate runs by thread in langsmith
-    "run_name": "chat_turn", # To give a name to each run in langsmith
+    "metadata": {
+        "thread_id": st.session_state["current_thread"]
+    },  # To Segregate runs by thread in langsmith
+    "run_name": "chat_turn",  # To give a name to each run in langsmith
 }
 
 # loading the conversation history
