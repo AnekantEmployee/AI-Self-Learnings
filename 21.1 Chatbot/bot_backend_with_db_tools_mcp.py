@@ -1,19 +1,18 @@
-import aiosqlite
+import os
 import asyncio
+import requests
+import aiosqlite
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
+from langchain_core.tools import tool
 from typing import TypedDict, Annotated, List
 from langgraph.graph.message import add_messages
 from langgraph.graph import StateGraph, START, END
+from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
+from langchain_community.utilities import GoogleSerperAPIWrapper
 from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage
 
-from langgraph.prebuilt import ToolNode, tools_condition
-from langchain_community.utilities import GoogleSerperAPIWrapper
-from langchain_core.tools import tool
-
-import requests
-import os
 
 load_dotenv("../.env")
 
@@ -153,7 +152,7 @@ def build_graph():
     graph.add_conditional_edges("chat", tools_condition)
     graph.add_edge("tools", "chat")
     graph.add_edge("chat", END)
-    
+
     return graph
 
 
