@@ -19,6 +19,15 @@ load_dotenv("../.env")
 
 FASTMCP_API_KEY = os.getenv("FASTMCP_API_KEY")
 
+# PATCH: Add is_alive method to aiosqlite.Connection
+if not hasattr(aiosqlite.Connection, "is_alive"):
+
+    def is_alive(self):
+        """Check if the connection is alive"""
+        return self._conn is not None
+
+    aiosqlite.Connection.is_alive = is_alive
+
 
 class ChatState(TypedDict):
     messages: Annotated[List[BaseMessage], add_messages]
@@ -39,7 +48,7 @@ SERVERS = {
         ],
     },
     "expense-tracker-anekant": {
-        "transport": "streamable_http",  # if fails sse
+        "transport": "streamable_http",
         "url": "https://expense-tracker-anekant.fastmcp.app/mcp",
         "headers": {"Authorization": f"Bearer {FASTMCP_API_KEY}"},
     },
@@ -131,10 +140,8 @@ async def chat_node(state: ChatState):
     return {"messages": [response]}
 
 
-async def get_chatbot():
-    conn = aiosqlite.connect("chatbot_mcp.db", check_same_thread=False)
-    checkpointer = AsyncSqliteSaver(conn=conn)
-
+def build_graph():
+    """Build the graph without checkpointer"""
     tool_node = ToolNode(tools=tools_list)
 
     graph = StateGraph(ChatState)
@@ -144,38 +151,40 @@ async def get_chatbot():
 
     graph.add_edge(START, "chat")
     graph.add_conditional_edges("chat", tools_condition)
-    graph.add_edge("tools", "chat")  # crucial step to make it a loop
+    graph.add_edge("tools", "chat")
     graph.add_edge("chat", END)
-
-    return graph.compile(checkpointer=checkpointer)
+    
+    return graph
 
 
 async def get_threads():
-    conn = aiosqlite.connect("chatbot_mcp.db", check_same_thread=False)
-    checkpointer = AsyncSqliteSaver(conn=conn)
-
-    threads = set()
-    async for checkpoint in checkpointer.list(None):
-        threads.add(checkpoint.config["configurable"]["thread_id"])
-
-    return list(threads)
+    """Get list of all thread IDs"""
+    async with AsyncSqliteSaver.from_conn_string("chatbot_mcp.db") as checkpointer:
+        threads = set()
+        async for checkpoint in checkpointer.list(None):
+            threads.add(checkpoint.config["configurable"]["thread_id"])
+        return list(threads)
 
 
 ## NORMAL WORKFLOW
 async def main():
-    chatbot = await get_chatbot()
-    config = {"configurable": {"thread_id": "1"}}
-    result = await chatbot.ainvoke(
-        {
-            "messages": [
-                HumanMessage(
-                    "what is stock price of apple and how much it would cost to purchase 50 shares"
-                )
-            ]
-        },
-        config,
-    )
-    print(result["messages"][-1].content)
+    # Use the context manager to keep the checkpointer alive during execution
+    async with AsyncSqliteSaver.from_conn_string("chatbot_mcp.db") as checkpointer:
+        graph = build_graph()
+        chatbot = graph.compile(checkpointer=checkpointer)
+
+        config = {"configurable": {"thread_id": "1"}}
+        result = await chatbot.ainvoke(
+            {
+                "messages": [
+                    HumanMessage(
+                        "what is stock price of apple and how much it would cost to purchase 50 shares"
+                    )
+                ]
+            },
+            config,
+        )
+        print(result["messages"][-1].content)
 
 
 if __name__ == "__main__":
