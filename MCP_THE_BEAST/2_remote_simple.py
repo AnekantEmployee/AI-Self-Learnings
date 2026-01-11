@@ -15,12 +15,12 @@ def add_numbers(a: float, b: float) -> float:
     """Add two numbers are float and returns the outupt"""
     return a + b
 
+
 @mcp.resource("info://server")
-def server_info()->str:
+def server_info() -> str:
     """get information about the server"""
-    info = {
-        "name":""
-    }
+    info = {"name": "My Simple Remote Server", "version": "1.0.0"}
+
 
 if __name__ == "__main__":
     mcp.run()
