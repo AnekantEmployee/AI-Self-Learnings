@@ -1,3 +1,5 @@
 fastmcp
 aiosqlite
 aiofiles
+aiosqlite
+aiofiles
