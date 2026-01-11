@@ -1,0 +1,12 @@
+{
+  "Food": ["Groceries", "Restaurants", "Fast Food", "Coffee", "Snacks"],
+  "Transportation": ["Gas", "Public Transit", "Taxi/Uber", "Parking", "Car Maintenance"],
+  "Housing": ["Rent", "Utilities", "Internet", "Phone", "Home Maintenance"],
+  "Healthcare": ["Doctor", "Pharmacy", "Dental", "Insurance", "Medical Supplies"],
+  "Entertainment": ["Movies", "Games", "Books", "Streaming", "Events"],
+  "Shopping": ["Clothing", "Electronics", "Home Goods", "Personal Care", "Gifts"],
+  "Education": ["Courses", "Books", "Supplies", "Tuition", "Certification"],
+  "Travel": ["Flights", "Hotels", "Car Rental", "Activities", "Meals"],
+  "Fitness": ["Gym", "Sports", "Equipment", "Classes", "Supplements"],
+  "Business": ["Office Supplies", "Software", "Equipment", "Marketing", "Travel"]
+}
