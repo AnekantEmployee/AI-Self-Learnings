@@ -27,9 +27,7 @@ async def init_db():
             )
         """
         )
-
-
-asyncio.run(init_db())
+        await c.commit()
 
 
 @mcp.tool
@@ -37,6 +35,7 @@ async def add_expense(
     date: str, amount: float, category: str, subcategory: str = "", note: str = ""
 ):
     """Add a new expense to the database."""
+    await init_db()
     async with aiosqlite.connect(DB_PATH) as c:
         cur = await c.execute(
             f"INSERT INTO expenses (date, amount, category, subcategory, note) VALUES (?, ?, ?, ?, ?)",
@@ -49,6 +48,7 @@ async def add_expense(
 @mcp.tool
 async def list_expenses(start_date: str = "", end_date: str = ""):
     """List expenses, optionally filtered by date range."""
+    await init_db()
     async with aiosqlite.connect(DB_PATH) as c:
         if start_date and end_date:
             cur = await c.execute(
@@ -87,6 +87,7 @@ async def list_expenses(start_date: str = "", end_date: str = ""):
 @mcp.tool
 async def delete_expense(expense_id: int):
     """Delete an expense by ID."""
+    await init_db()
     async with aiosqlite.connect(DB_PATH) as c:
         cur = await c.execute("DELETE FROM expenses WHERE id = ?", (expense_id,))
         await c.commit()
@@ -98,6 +99,7 @@ async def summarize_expenses(
     start_date: str = "", end_date: str = "", category: str = ""
 ):
     """Summarize expenses by category with optional date and category filters."""
+    await init_db()
     async with aiosqlite.connect(DB_PATH) as c:
         query = "SELECT category, SUM(amount) as total, COUNT(*) as count FROM expenses"
         params = []
@@ -125,6 +127,7 @@ async def summarize_expenses(
 
 @mcp.resource("expense://categories", mime_type="application/json")
 async def categories():
+    await init_db()
     async with aiofiles.open(CATEGORIES_PATH, "r", encoding="utf-8") as f:
         return await f.read()
 
