@@ -3,3 +3,4 @@ venv
 .venv
 uv.lock
 .python-version
+my_chroma_db
