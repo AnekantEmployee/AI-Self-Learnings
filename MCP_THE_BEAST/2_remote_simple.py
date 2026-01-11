@@ -1,3 +1,4 @@
+import json
 import random
 from fastmcp import FastMCP
 
@@ -19,8 +20,20 @@ def add_numbers(a: float, b: float) -> float:
 @mcp.resource("info://server")
 def server_info() -> str:
     """get information about the server"""
-    info = {"name": "My Simple Remote Server", "version": "1.0.0"}
+    info = {
+        "name": "My Simple Remote Server",
+        "version": "1.0.0",
+        "description": "Basic Remote Server",
+        "tools": ["add_numbers", "roll_dice"],
+        "author": "Anekant",
+    }
+    return json.dumps(info, indent=2)
 
 
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(transport="http", host="0.0.0.0", port=8000)
+
+
+
+# uv run fastmcp dev main.py
+# uv run fastmcp run main.py --transport http --host 0.0.0.0 --port 8000 / uv run python main.py
