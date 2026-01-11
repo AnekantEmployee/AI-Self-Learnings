@@ -30,7 +30,7 @@ init_db()
 
 
 @mcp.tool
-def add_expense(date, amount, category, subcategory="", note=""):
+def add_expense(date: str, amount: float, category: str, subcategory: str = "", note: str = ""):
     """Add a new expense to the database."""
     with sqlite3.connect(DB_PATH) as c:
         cur = c.execute(
@@ -79,7 +79,7 @@ def list_expenses(start_date: str = "", end_date: str = ""):
 
 
 @mcp.tool
-def delete_expense(expense_id):
+def delete_expense(expense_id: int):
     """Delete an expense by ID."""
     with sqlite3.connect(DB_PATH) as c:
         cur = c.execute("DELETE FROM expenses WHERE id = ?", (expense_id,))
