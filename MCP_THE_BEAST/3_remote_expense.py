@@ -41,7 +41,7 @@ def add_expense(date, amount, category, subcategory="", note=""):
 
 
 @mcp.tool
-def list_expenses(start_date="", end_date=""):
+def list_expenses(start_date: str = "", end_date: str = ""):
     """List expenses, optionally filtered by date range."""
     with sqlite3.connect(DB_PATH) as c:
         if start_date and end_date:
@@ -87,7 +87,7 @@ def delete_expense(expense_id):
 
 
 @mcp.tool
-def summarize_expenses(start_date="", end_date="", category=""):
+def summarize_expenses(start_date: str = "", end_date: str = "", category: str = ""):
     """Summarize expenses by category with optional date and category filters."""
     with sqlite3.connect(DB_PATH) as c:
         query = "SELECT category, SUM(amount) as total, COUNT(*) as count FROM expenses"
