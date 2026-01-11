@@ -15,13 +15,12 @@ def add_numbers(a: float, b: float) -> float:
     """Add two numbers are float and returns the outupt"""
     return a + b
 
+@mcp.resource("info://server")
+def server_info()->str:
+    """get information about the server"""
+    info = {
+        "name":""
+    }
 
 if __name__ == "__main__":
     mcp.run()
-
-
-# uv init
-# uv add fastmcp
-# uv run fastmcp dev main.py --test
-# uv run fastmcp run main.py --run
-# uv run fastmcp install claude-desktop main.py --claude installation
