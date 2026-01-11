@@ -81,7 +81,7 @@ async def list_expenses(start_date: str = "", end_date: str = ""):
                 ORDER BY id ASC"""
             )
         cols = [d[0] for d in cur.description]
-        return [dict(zip(cols, r)) for r in cur.fetchall()]
+        return [dict(zip(cols, r)) for r in await cur.fetchall()]
 
 
 @mcp.tool
@@ -122,7 +122,7 @@ async def summarize_expenses(
 
         cur = await c.execute(query, params)
         cols = [d[0] for d in cur.description]
-        return [dict(zip(cols, r)) for r in cur.fetchall()]
+        return [dict(zip(cols, r)) for r in await cur.fetchall()]
 
 
 @mcp.resource("expense://categories", mime_type="application/json")
