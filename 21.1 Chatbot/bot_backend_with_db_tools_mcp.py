@@ -83,4 +83,4 @@ chatbot = graph.compile(checkpointer=checkpointer)
 
 
 def get_all_threads():
-    return retrieve_all_threads(checkpointer)
+    return list(reversed(retrieve_all_threads(checkpointer)))
