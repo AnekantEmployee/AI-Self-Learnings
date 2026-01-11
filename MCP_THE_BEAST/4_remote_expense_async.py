@@ -1,8 +1,10 @@
 from fastmcp import FastMCP
 import os
 import json
-import sqlite3
+import aiosqlite
 import tempfile
+import asyncio
+import aiofiles
 
 mcp = FastMCP("ExpenseTracker")
 
@@ -10,10 +12,10 @@ DB_PATH = os.path.join(tempfile.gettempdir(), "expenses.db")
 CATEGORIES_PATH = os.path.join(os.path.dirname(__file__), "categories.json")
 
 
-def init_db():
+async def init_db():
     """Initialize the expenses database with required table."""
-    with sqlite3.connect(DB_PATH) as c:
-        c.execute(
+    async with aiosqlite.connect(DB_PATH) as c:
+        await c.execute(
             """
             CREATE TABLE IF NOT EXISTS expenses(
                 id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
@@ -27,66 +29,76 @@ def init_db():
         )
 
 
-init_db()
+asyncio.run(init_db())
 
 
 @mcp.tool
-def add_expense(date: str, amount: float, category: str, subcategory: str = "", note: str = ""):
+async def add_expense(
+    date: str, amount: float, category: str, subcategory: str = "", note: str = ""
+):
     """Add a new expense to the database."""
-    with sqlite3.connect(DB_PATH) as c:
-        cur = c.execute(
+    async with aiosqlite.connect(DB_PATH) as c:
+        cur = await c.execute(
             f"INSERT INTO expenses (date, amount, category, subcategory, note) VALUES (?, ?, ?, ?, ?)",
             (date, amount, category, subcategory, note),
         )
+        await c.commit()
         return {"status": "ok", "id": cur.lastrowid}
 
 
 @mcp.tool
-def list_expenses(start_date: str = "", end_date: str = "", category: str = "", subcategory: str = "", note: str = ""):
-    """List expenses, optionally filtered by date range, category, subcategory, and note."""
-    with sqlite3.connect(DB_PATH) as c:
-        query = "SELECT id, date, amount, category, subcategory, note FROM expenses"
-        params = []
-        conditions = []
-        
-        if start_date:
-            conditions.append("date >= ?")
-            params.append(start_date)
-        if end_date:
-            conditions.append("date <= ?")
-            params.append(end_date)
-        if category:
-            conditions.append("category = ?")
-            params.append(category)
-        if subcategory:
-            conditions.append("subcategory = ?")
-            params.append(subcategory)
-        if note:
-            conditions.append("note LIKE ?")
-            params.append(f"%{note}%")
-            
-        if conditions:
-            query += " WHERE " + " AND ".join(conditions)
-            
-        query += " ORDER BY id ASC"
-        
-        cur = c.execute(query, params)
+async def list_expenses(start_date: str = "", end_date: str = ""):
+    """List expenses, optionally filtered by date range."""
+    async with aiosqlite.connect(DB_PATH) as c:
+        if start_date and end_date:
+            cur = await c.execute(
+                """SELECT id, date, amount, category, subcategory, note 
+                FROM expenses 
+                WHERE date >= ? AND date <= ?
+                ORDER BY id ASC""",
+                (start_date, end_date),
+            )
+        elif start_date:
+            cur = await c.execute(
+                """SELECT id, date, amount, category, subcategory, note 
+                FROM expenses 
+                WHERE date >= ?
+                ORDER BY id ASC""",
+                (start_date,),
+            )
+        elif end_date:
+            cur = await c.execute(
+                """SELECT id, date, amount, category, subcategory, note 
+                FROM expenses 
+                WHERE date <= ?
+                ORDER BY id ASC""",
+                (end_date,),
+            )
+        else:
+            cur = await c.execute(
+                """SELECT id, date, amount, category, subcategory, note 
+                FROM expenses 
+                ORDER BY id ASC"""
+            )
         cols = [d[0] for d in cur.description]
         return [dict(zip(cols, r)) for r in cur.fetchall()]
 
 
 @mcp.tool
-def delete_expense(expense_id: int):
+async def delete_expense(expense_id: int):
     """Delete an expense by ID."""
-    with sqlite3.connect(DB_PATH) as c:
-        cur = c.execute("DELETE FROM expenses WHERE id = ?", (expense_id,))
+    async with aiosqlite.connect(DB_PATH) as c:
+        cur = await c.execute("DELETE FROM expenses WHERE id = ?", (expense_id,))
+        await c.commit()
         return {"status": "ok", "deleted": cur.rowcount > 0}
 
 
 @mcp.tool
-def summarize_expenses(start_date: str = "", end_date: str = "", category: str = ""):
+async def summarize_expenses(
+    start_date: str = "", end_date: str = "", category: str = ""
+):
     """Summarize expenses by category with optional date and category filters."""
-    with sqlite3.connect(DB_PATH) as c:
+    async with aiosqlite.connect(DB_PATH) as c:
         query = "SELECT category, SUM(amount) as total, COUNT(*) as count FROM expenses"
         params = []
         conditions = []
@@ -106,15 +118,15 @@ def summarize_expenses(start_date: str = "", end_date: str = "", category: str =
 
         query += " GROUP BY category ORDER BY total DESC"
 
-        cur = c.execute(query, params)
+        cur = await c.execute(query, params)
         cols = [d[0] for d in cur.description]
         return [dict(zip(cols, r)) for r in cur.fetchall()]
 
 
 @mcp.resource("expense://categories", mime_type="application/json")
-def categories():
-    with open(CATEGORIES_PATH, "r", encoding="utf-8") as f:
-        return f.read()
+async def categories():
+    async with aiofiles.open(CATEGORIES_PATH, "r", encoding="utf-8") as f:
+        return await f.read()
 
 
 @mcp.resource("info://server")
