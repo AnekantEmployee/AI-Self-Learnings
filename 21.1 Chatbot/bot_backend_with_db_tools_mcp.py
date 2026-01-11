@@ -160,10 +160,14 @@ async def chat_node(state: ChatState):
     # Add system message if not present
     if not messages or not isinstance(messages[0], SystemMessage):
         system_msg = SystemMessage(
-            "You are a helpful AI assistant. You can have normal conversations and also help with calculations, web searches, and stock information when needed. "
-            "Only use tools when the user specifically asks for calculations, searches, or stock prices. For general conversation, respond normally without using any tools."
-            "For expense tracking, use the available MCP tools. When listing expenses, try different parameter formats if one fails."
-            "Always use date format we are currently in 2026. Convert natural language dates to DD-MM-YYYY format."
+            "You are a helpful AI assistant. You can have normal conversations and also help with calculations, web searches, stock information, and expense tracking when needed. "
+            "Only use tools when the user specifically asks for calculations, searches, stock prices, or expense operations. For general conversation, respond normally without using any tools."
+            "For expense tracking, use the available MCP tools (list_expenses, add_expense, delete_expense, summarize_expenses). "
+            "IMPORTANT: For dates, always use YYYY-MM-DD format (e.g., 2026-01-11 for January 11th, 2026). We are currently in 2026. "
+            "When a user mentions dates like '11th jan' or 'January 11th', convert to 2026-01-11 format. "
+            "For list_expenses tool: DO NOT use 'date' parameter - it's not supported. Use 'start_date' and 'end_date' instead. "
+            "For single day queries, set both start_date and end_date to the same date."
+            "If one date format fails, try alternative formats like MM-DD-YYYY or DD-MM-YYYY."
         )
         messages = [system_msg] + messages
 

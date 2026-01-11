@@ -23,6 +23,22 @@ def add_thread(thread_id):
         st.session_state["chat_threads"].append(thread_id)
 
 
+def delete_thread(thread_id):
+    if thread_id in st.session_state["chat_threads"]:
+        st.session_state["chat_threads"].remove(thread_id)
+        if st.session_state["thread_id"] == thread_id:
+            if st.session_state["chat_threads"]:
+                st.session_state["thread_id"] = st.session_state["chat_threads"][-1]
+                messages = load_conversation(st.session_state["thread_id"])
+                temp_messages = []
+                for msg in messages:
+                    role = "user" if isinstance(msg, HumanMessage) else "assistant"
+                    temp_messages.append({"role": role, "content": msg.content})
+                st.session_state["message_history"] = temp_messages
+            else:
+                reset_chat()
+
+
 def load_conversation(thread_id):
     state = chatbot.get_state(config={"configurable": {"thread_id": thread_id}})
     # Check if messages key exists in state values, return empty list if not
@@ -49,15 +65,26 @@ if st.sidebar.button("New Chat"):
 
 st.sidebar.header("My Conversations")
 for thread_id in st.session_state["chat_threads"][::-1]:
-    if st.sidebar.button(str(thread_id)):
-        st.session_state["thread_id"] = thread_id
-        messages = load_conversation(thread_id)
+    col1, col2 = st.sidebar.columns([3, 1])
+    
+    with col1:
+        is_current = thread_id == st.session_state["thread_id"]
+        button_label = f"{'🟢 ' if is_current else ''}{str(thread_id)}"
+        if st.button(button_label, key=f"chat_{thread_id}"):
+            st.session_state["thread_id"] = thread_id
+            messages = load_conversation(thread_id)
 
-        temp_messages = []
-        for msg in messages:
-            role = "user" if isinstance(msg, HumanMessage) else "assistant"
-            temp_messages.append({"role": role, "content": msg.content})
-        st.session_state["message_history"] = temp_messages
+            temp_messages = []
+            for msg in messages:
+                role = "user" if isinstance(msg, HumanMessage) else "assistant"
+                temp_messages.append({"role": role, "content": msg.content})
+            st.session_state["message_history"] = temp_messages
+            st.rerun()
+    
+    with col2:
+        if st.button("🗑️", key=f"del_{thread_id}", help="Delete chat"):
+            delete_thread(thread_id)
+            st.rerun()
 
 # ============================ Main UI ============================
 
@@ -97,6 +124,7 @@ if user_input:
                     ):
                         event_queue.put((message_chunk, metadata))
                 except Exception as exc:
+                    print(f"Stream error: {exc}")  # Debug logging
                     event_queue.put(("error", exc))
                 finally:
                     event_queue.put(None)
@@ -109,20 +137,24 @@ if user_input:
                     break
                 message_chunk, metadata = item
                 if message_chunk == "error":
+                    print(f"Error in stream: {metadata}")  # Debug logging
                     raise metadata
 
                 # Lazily create & update the SAME status container when any tool runs
                 if isinstance(message_chunk, ToolMessage):
                     tool_name = getattr(message_chunk, "name", "tool")
+                    tool_content = getattr(message_chunk, "content", "")
+                    print(f"Tool {tool_name} result: {tool_content}")  # Debug logging
+                    
                     if status_holder["box"] is None:
                         status_holder["box"] = st.status(
-                            f"🔧 Using `{tool_name}` …", expanded=True
+                            f"🔧 Using `{tool_name}` …", expanded=False
                         )
                     else:
                         status_holder["box"].update(
                             label=f"🔧 Using `{tool_name}` …",
                             state="running",
-                            expanded=True,
+                            expanded=False,
                         )
 
                 # Stream ONLY assistant tokens
@@ -138,6 +170,7 @@ if user_input:
             )
 
     # Save assistant message
-    st.session_state["message_history"].append(
-        {"role": "assistant", "content": ai_message}
-    )
+    if ai_message and ai_message.strip():
+        st.session_state["message_history"].append(
+            {"role": "assistant", "content": ai_message}
+        )
