@@ -46,40 +46,36 @@ async def add_expense(
 
 
 @mcp.tool
-async def list_expenses(start_date: str = "", end_date: str = ""):
-    """List expenses, optionally filtered by date range."""
+async def list_expenses(start_date: str = "", end_date: str = "", category: str = "", subcategory: str = "", note: str = ""):
+    """List expenses, optionally filtered by date range, category, subcategory, and note."""
     await init_db()
     async with aiosqlite.connect(DB_PATH) as c:
-        if start_date and end_date:
-            cur = await c.execute(
-                """SELECT id, date, amount, category, subcategory, note 
-                FROM expenses 
-                WHERE date >= ? AND date <= ?
-                ORDER BY id ASC""",
-                (start_date, end_date),
-            )
-        elif start_date:
-            cur = await c.execute(
-                """SELECT id, date, amount, category, subcategory, note 
-                FROM expenses 
-                WHERE date >= ?
-                ORDER BY id ASC""",
-                (start_date,),
-            )
-        elif end_date:
-            cur = await c.execute(
-                """SELECT id, date, amount, category, subcategory, note 
-                FROM expenses 
-                WHERE date <= ?
-                ORDER BY id ASC""",
-                (end_date,),
-            )
-        else:
-            cur = await c.execute(
-                """SELECT id, date, amount, category, subcategory, note 
-                FROM expenses 
-                ORDER BY id ASC"""
-            )
+        query = "SELECT id, date, amount, category, subcategory, note FROM expenses"
+        params = []
+        conditions = []
+        
+        if start_date:
+            conditions.append("date >= ?")
+            params.append(start_date)
+        if end_date:
+            conditions.append("date <= ?")
+            params.append(end_date)
+        if category:
+            conditions.append("category = ?")
+            params.append(category)
+        if subcategory:
+            conditions.append("subcategory = ?")
+            params.append(subcategory)
+        if note:
+            conditions.append("note LIKE ?")
+            params.append(f"%{note}%")
+            
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+            
+        query += " ORDER BY id ASC"
+        
+        cur = await c.execute(query, params)
         cols = [d[0] for d in cur.description]
         return [dict(zip(cols, r)) for r in await cur.fetchall()]
 

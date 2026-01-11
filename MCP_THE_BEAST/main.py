@@ -16,6 +16,32 @@ def add_numbers(a: float, b: float) -> float:
     return a + b
 
 
+@mcp.tool
+def subtract_numbers(a: float, b: float) -> float:
+    """Subtract two numbers and return the result"""
+    return a - b
+
+
+@mcp.tool
+def multiply_numbers(a: float, b: float) -> float:
+    """Multiply two numbers and return the result"""
+    return a * b
+
+
+@mcp.tool
+def divide_numbers(a: float, b: float) -> float:
+    """Divide two numbers and return the result"""
+    if b == 0:
+        raise ValueError("Cannot divide by zero")
+    return a / b
+
+
+@mcp.tool
+def power_numbers(a: float, b: float) -> float:
+    """Raise first number to the power of second number"""
+    return a ** b
+
+
 if __name__ == "__main__":
     mcp.run()
 
