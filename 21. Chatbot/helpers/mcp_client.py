@@ -23,12 +23,32 @@ SERVERS = {
     },
 }
 
-client = MultiServerMCPClient(SERVERS)
+try:
+    client = MultiServerMCPClient(SERVERS)
+except Exception as e:
+    print(f"Failed to initialize MCP client: {e}")
+    client = None
 
 
 def load_mcp_tools() -> list[BaseTool]:
+    if client is None:
+        print("MCP client not initialized")
+        return []
+    
     try:
-        tools = run_async(client.get_tools())
+        # Add timeout and proper error handling
+        import asyncio
+        async def get_tools_with_timeout():
+            try:
+                return await asyncio.wait_for(client.get_tools(), timeout=10.0)
+            except asyncio.TimeoutError:
+                print("MCP tools loading timed out")
+                return []
+            except Exception as e:
+                print(f"Error getting MCP tools: {e}")
+                return []
+        
+        tools = run_async(get_tools_with_timeout())
         print(f"Loaded {len(tools)} MCP tools: {[tool.name for tool in tools]}")
         return tools
     except Exception as e:

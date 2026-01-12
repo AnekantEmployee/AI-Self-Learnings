@@ -48,7 +48,7 @@ async def main():
         system_msg = SystemMessage(
             content="Always use date format we are currently in 2026. Convert natural language dates to DD-MM-YYYY format."
         )
-        question = "What all expenses I did on 9th jan it's total"
+        question = "What all expenses I did on 10-01-2026 it's total and divide it in between of two ppls tool"
 
         messages = [system_msg, question]
         
