@@ -1,8 +1,8 @@
-from typing import TypedDict, Annotated
-from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
-from langgraph.graph import StateGraph, START, END, add_messages
+from typing import TypedDict, Annotated
 from langchain_core.messages import HumanMessage
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langgraph.graph import StateGraph, START, END, add_messages
 
 load_dotenv()
 
@@ -41,7 +41,7 @@ def post(state: State):
 
 
 def collect_feedback(state: State):
-    feedback = input("How can I improve this post?")
+    feedback = input("How can I improve this post: ")
     return {"messages": [HumanMessage(content=feedback + "in 40 words")]}
 
 
