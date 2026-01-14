@@ -1,7 +1,7 @@
 import os
 import asyncio
 from dotenv import load_dotenv
-from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_core.messages import ToolMessage, SystemMessage, HumanMessage
 
@@ -15,7 +15,7 @@ SERVERS = {
             "run",
             "fastmcp",
             "run",
-            "D:/Agentic AI/Self-Learning/mcps_new_course/filesystem.py",
+            "D:/Agentic AI/Self-Learning/mcps_new_course/1_filesystem.py",
         ],
     },
 }
@@ -26,7 +26,7 @@ async def main():
     client = MultiServerMCPClient(SERVERS)
     tools_list = await client.get_tools()
     named_tools = {tool.name: tool for tool in tools_list}
-    llm_with_tools = ChatGroq(model="llama-3.1-8b-instant").bind_tools(tools_list)
+    llm_with_tools = ChatGoogleGenerativeAI(model="gemini-2.5-flash").bind_tools(tools_list)
 
     print("Filesystem Chat Assistant")
     print(f"Base Directory: {BASE_DIR}\n")

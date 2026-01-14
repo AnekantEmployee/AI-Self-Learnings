@@ -6,58 +6,33 @@ mcp = FastMCP("terminal_filesystem")
 
 
 @mcp.tool
-def run_unix_command(command: str, base_dir: str = None) -> str:
-    """Run Unix-style commands using Git Bash with proper PATH"""
-    cwd = base_dir if base_dir else os.path.expanduser("~/Desktop")
+def run_command(command: str, base_dir: str = None) -> str:
+    """Execute Windows shell commands. ONLY use Windows cmd syntax.
 
-    git_bash_path = r"C:\Users\anekant.jain\AppData\Local\Programs\Git\usr\bin\bash.exe"
-    git_bin_dir = r"C:\Users\anekant.jain\AppData\Local\Programs\Git\usr\bin"
+    Examples:
+    - List files: dir
+    - Create directory: mkdir dirname
+    - Create empty file: type nul > filename.txt
+    - Create file with content: echo content > filename.txt
+    - Delete file: del filename
+    - Delete directory: rmdir /s /q dirname
+    - View file: type filename.txt
+    - Copy: copy source dest
+    - Move: move source dest
 
-    if not os.path.exists(git_bash_path):
-        return "Error: Git Bash not found"
-
-    try:
-        # Set up environment with proper PATH for Unix commands
-        env = os.environ.copy()
-        env["PATH"] = f"{git_bin_dir};{env.get('PATH', '')}"
-
-        result = subprocess.run(
-            [git_bash_path, "-c", command],
-            cwd=cwd,
-            capture_output=True,
-            text=True,
-            timeout=10,
-            env=env,
-            shell=False,
-        )
-
-        if result.returncode != 0:
-            error_msg = result.stderr.strip() if result.stderr else "Unknown error"
-            return f"Error (exit {result.returncode}): {error_msg}"
-
-        return result.stdout if result.stdout else "Command executed successfully"
-
-    except subprocess.TimeoutExpired:
-        return f"Error: Command timed out after 10 seconds"
-    except Exception as e:
-        return f"Error: {str(e)}"
-
-
-@mcp.tool
-def run_shell_command(command: str, base_dir: str = None) -> str:
-    """Run shell commands using (supports commands: mkdir, type, del etc.)
+    DO NOT use Unix commands like touch, ls, cat, rm - they won't work.
 
     Args:
-        command (str): Shell command
-        base_dir (str, optional): Base directory to run command in. Defaults to ~/Desktop
+        command (str): Windows cmd command
+        base_dir (str, optional): Directory to run command in. Defaults to ~/Desktop
 
     Returns:
-        str: command output or error message
+        str: Command output or error message
     """
     cwd = base_dir if base_dir else os.path.expanduser("~/Desktop")
     try:
         result = subprocess.run(
-            command, shell=True, cwd=cwd, capture_output=True, text=True, timeout=30
+            command, shell=True, cwd=cwd, capture_output=True, text=True
         )
         return result.stdout or result.stderr
     except Exception as e:
