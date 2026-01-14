@@ -9,7 +9,7 @@ client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
 
 response = client.models.generate_content(
     model="gemini-2.5-flash", 
-    contents="Predit the next word: I love  ...",
+    contents="In hinglish tell me a joke",
     config=GenerateContentConfig(
         temperature=1,         
         top_p=0.95,
