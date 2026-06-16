@@ -1,17 +1,17 @@
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage, AIMessage
+from dotenv import load_dotenv
+from typing import TypedDict, Annotated, List
 from langgraph.graph.message import add_messages
 from langgraph.graph import StateGraph, START, END
-from typing import TypedDict, Annotated, List
 from langchain_core.prompts import ChatPromptTemplate
-from dotenv import load_dotenv
+from langchain_core.output_parsers import StrOutputParser
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage, AIMessage
 
 load_dotenv()
 
 
 class ChatState(TypedDict):
-    messages: Annotated[List[BaseMessage], add_messages]
+    messages: Annotated[List[BaseMessage], add_messages] # Add messages is the reducer to store the values
 
 
 prompt_template = ChatPromptTemplate(
@@ -27,7 +27,9 @@ chain = prompt_template | llm | output_parser
 
 def chat_node(state: ChatState):
     messages = state["messages"]
-
+    print()
+    print(messages)
+    print()
     response = chain.invoke(messages)
 
     return {"messages": [AIMessage(response)]}

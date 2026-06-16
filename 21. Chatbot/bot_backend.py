@@ -1,5 +1,5 @@
 from langchain_groq import ChatGroq
-from langchain_core.messages import BaseMessage, SystemMessage
+from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage
 from langgraph.graph.message import add_messages
 from langgraph.graph import StateGraph, START, END
 from typing import TypedDict, Annotated, List
@@ -45,15 +45,15 @@ def get_chatbot():
 # print(result)
 
 
-#### STREAMLING
-# chatbot = get_chatbot()
-# config = {"configurable": {"thread_id": "1"}}
-# result = chatbot.stream(
-#     {"messages": [HumanMessage("Tell me a 100 words esssay on AI")]},
-#     config=config,
-#     stream_mode="messages",
-# )
-# print(result)  # Gives a generator object
-# for chunk, metadata in result:
-#     if chunk.content:
-#         print(chunk.content)
+### STREAMLING
+chatbot = get_chatbot()
+config = {"configurable": {"thread_id": "1"}}
+result = chatbot.stream(
+    {"messages": [HumanMessage("Tell me a 100 words esssay on AI")]},
+    config=config,
+    stream_mode="messages",
+)
+print(result)  # Gives a generator object
+for chunk, metadata in result:
+    if chunk.content:
+        print(chunk.content)

@@ -18,7 +18,7 @@ llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
 
 def chat_node(state: ChatState):
     messages = state["messages"]
-
+    print(messages)
     response = llm.invoke(messages)
 
     return {"messages": [response]}

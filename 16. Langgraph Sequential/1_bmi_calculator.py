@@ -1,6 +1,6 @@
+from typing import TypedDict
 from langgraph.graph import StateGraph, START, END
 # from IPython.display import Image
-from typing import TypedDict
 
 # Created a State
 class BMIState(TypedDict):
